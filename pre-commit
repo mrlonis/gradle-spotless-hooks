@@ -1,6 +1,6 @@
 #!/bin/sh
 logGitInfo() {
-  if [ "$MAVEN_SPOTLESS_HOOKS_DEBUG" = 1 ]; then
+  if [ "$GRADLE_SPOTLESS_HOOKS_DEBUG" = 1 ]; then
     echo "[git pre-commit hook - $conflictedFile] - git status --porcelain"
     git status --porcelain
     echo "[git pre-commit hook - $conflictedFile] - git status"
@@ -35,10 +35,10 @@ stageUnStagedChangesInStagedFiles() {
 
 spotlessApply() {
   # We pass in ratchetFrom here to ensure that we only format the files that have changed since the last commit
-  if command -v mvn >/dev/null 2>&1; then # Check if mvn command exists to support GitHub Desktop on Windows
-    mvn spotless:apply -DratchetFrom=HEAD -q # Requires Maven to be installed
+  if command -v gradle >/dev/null 2>&1; then   # Check if gradle command exists to support GitHub Desktop on Windows
+    gradle spotlessApply -PratchetFrom=HEAD -q # Requires Gradle to be installed
   else
-    ./mvnw spotless:apply -DratchetFrom=HEAD -q # Otherwise call maven wrapper for Mac-OS / Unix / Git for Windows
+    ./gradlew spotlessApply -PratchetFrom=HEAD -q # Otherwise call gradle wrapper for Mac-OS / Unix / Git for Windows
   fi
 }
 
@@ -49,34 +49,30 @@ handleMergeConflicts() {
       echo "[git pre-commit hook] - Resolving conflict for $conflictedFile"
       logGitInfo
 
-      if [ "$MAVEN_SPOTLESS_HOOKS_DEBUG" = 1 ]; then
+      if [ "$GRADLE_SPOTLESS_HOOKS_DEBUG" = 1 ]; then
         echo "[git pre-commit hook - $conflictedFile] - Calling git checkout --theirs"
       fi
       git checkout --theirs "$(pwd)/$conflictedFile"
       logGitInfo
-      if [ "$MAVEN_SPOTLESS_HOOKS_DEBUG" = 1 ]; then
+      if [ "$GRADLE_SPOTLESS_HOOKS_DEBUG" = 1 ]; then
         echo "[git pre-commit hook - $conflictedFile] - Calling git restore --staged"
       fi
       git restore --staged "$(pwd)/$conflictedFile"
       logGitInfo
 
-      if [ "$MAVEN_SPOTLESS_HOOKS_DEBUG" = 1 ]; then
+      if [ "$GRADLE_SPOTLESS_HOOKS_DEBUG" = 1 ]; then
         echo "[git pre-commit hook - $conflictedFile] - Adding $conflictedFile to staging area"
       fi
       git add "$conflictedFile"
       logGitInfo
 
-      if [ "$MAVEN_SPOTLESS_HOOKS_DEBUG" = 1 ]; then
-        echo "[git pre-commit hook - $conflictedFile] - Running spotless:apply"
+      if [ "$GRADLE_SPOTLESS_HOOKS_DEBUG" = 1 ]; then
+        echo "[git pre-commit hook - $conflictedFile] - Running spotlessApply"
       fi
-      if command -v mvn >/dev/null 2>&1; then
-        mvn spotless:apply -DspotlessFiles=".*$conflictedFile" -q
-      else
-        ./mvnw spotless:apply -DspotlessFiles=".*$conflictedFile" -q
-      fi
+      spotlessApply
 
       logGitInfo
-      if [ "$MAVEN_SPOTLESS_HOOKS_DEBUG" = 1 ]; then
+      if [ "$GRADLE_SPOTLESS_HOOKS_DEBUG" = 1 ]; then
         echo "[git pre-commit hook - $conflictedFile] - Adding $conflictedFile to the staging area"
       fi
       git add "$conflictedFile"
@@ -96,11 +92,11 @@ handleEmptyCommitAtEnd() {
     # Example:
     #   - We accidentally indented 1 line in a file by an extra space. This causes us to stash the extra space, apply the
     #     formatting which will remove the extra space, and then un-stash the extra space back into the file that the
-    #     formatter just removed. By re-running spotless:apply, we remove the extra space again and remove the file from
+    #     formatter just removed. By re-running spotlessApply, we remove the extra space again and remove the file from
     #     the staging area.
     #
     # This results in no changes to commit, so we exit with 1 to prevent committing an empty commit.
-    # We run spotless:apply again here to ensure that the files are formatted correctly and to remove the file from the staging area.
+    # We run spotlessApply again here to ensure that the files are formatted correctly and to remove the file from the staging area.
     spotlessApply
     exit 1
   fi
@@ -111,7 +107,7 @@ handleEmptyCommitAtStart
 stageUnStagedChangesInStagedFiles
 git stash clear
 git stash -q --keep-index
-echo "[git pre-commit hook] - Running spotless:apply"
+echo "[git pre-commit hook] - Running spotlessApply"
 spotlessApply
 SPOTLESS_APPLY_RESULT=$?
 git add -u

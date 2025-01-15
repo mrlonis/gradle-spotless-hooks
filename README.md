@@ -1,11 +1,11 @@
-# maven-spotless-hooks
+# gradle-spotless-hooks
 
 ## Table of Contents
 
-- [maven-spotless-hooks](#maven-spotless-hooks)
+- [gradle-spotless-hooks](#gradle-spotless-hooks)
   - [Table of Contents](#table-of-contents)
   - [Usage](#usage)
-    - [Automatically Update Submodule With Maven](#automatically-update-submodule-with-maven)
+    - [Automatically Update Submodule With Gradle](#automatically-update-submodule-with-gradle)
       - [Executed Command](#executed-command)
       - [Excluding submodule updates during CI](#excluding-submodule-updates-during-ci)
         - [GitHub Actions](#github-actions)
@@ -18,15 +18,15 @@
 This repo should be added to another repo as a submodule
 
 ```sh
-git submodule add -b main https://github.com/mrlonis/maven-spotless-hooks.git .hooks/
-git commit -m "Adding maven-spotless-hooks"
+git submodule add -b main https://github.com/mrlonis/gradle-spotless-hooks.git .hooks/
+git commit -m "Adding gradle-spotless-hooks"
 ```
 
-This will add the `maven-spotless-hooks` repository as a submodule in the `.hooks` folder within your project.
+This will add the `gradle-spotless-hooks` repository as a submodule in the `.hooks` folder within your project.
 
-### Automatically Update Submodule With Maven
+### Automatically Update Submodule With Gradle
 
-Submodules are not cloned by default so we need to add a plugin to our Maven root `pom.xml` to clone the submodule. The following is the recommended configuration:
+Submodules are not cloned by default so we need to add a plugin to our Gradle root `pom.xml` to clone the submodule. The following is the recommended configuration:
 
 ```xml
 <project>
@@ -141,10 +141,9 @@ This works by checking for the absence of an environment variable `SOME_ENV_VAR`
 If you are using GitHub Actions, you can exclude the submodule update by adding the following `env` configuration to the `.github/workflows/*.yml` file:
 
 ```yaml
-...
+---
 env:
   SOME_ENV_VAR: this_can_be_anything_since_we_are_checking_for_its_absence_not_its_value
-...
 ```
 
 ### Install Git Hooks
@@ -200,6 +199,6 @@ We then need to install the git hooks. This can be done by adding the following 
 2. In the `System Properties` window, click on the `Environment Variables` button
 3. In the `Environment Variables` window, under `System variables`, click on `Path` and then click on `Edit`
 4. In the `Edit Environment Variable` window, click on `New` and add the following paths:
-    - `C:\Program Files\Git\usr\bin`
-    - `C:\Program Files\Git\mingw64\libexec\git-core`
+   - `C:\Program Files\Git\usr\bin`
+   - `C:\Program Files\Git\mingw64\libexec\git-core`
 5. These will be added to the end of the list. Click on each one, and then click on `Move Up` until they are at the top of the list
