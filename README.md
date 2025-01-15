@@ -26,52 +26,20 @@ This will add the `gradle-spotless-hooks` repository as a submodule in the `.hoo
 
 ### Automatically Update Submodule With Gradle
 
-Submodules are not cloned by default so we need to add a plugin to our Gradle root `pom.xml` to clone the submodule. The following is the recommended configuration:
+Submodules are not cloned by default so we need to add a plugin to our Gradle root `build.gradle` to clone the submodule. The following is the recommended configuration:
 
-```xml
-<project>
-  ...
-  <properties>
-    ...
-    <exec-maven-plugin.version>3.3.0</exec-maven-plugin.version>
-    ...
-  </properties>
-  ...
-  <build>
-    ...
-    <plugins>
-      ...
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>exec-maven-plugin</artifactId>
-        <version>${exec-maven-plugin.version}</version>
-        <inherited>false</inherited>
-        <executions>
-          <execution>
-            <id>git submodule update</id>
-            <goals>
-              <goal>exec</goal>
-            </goals>
-            <phase>initialize</phase>
-            <configuration>
-              <executable>git</executable>
-              <arguments>
-                <argument>submodule</argument>
-                <argument>update</argument>
-                <argument>--init</argument>
-                <argument>--remote</argument>
-                <argument>--force</argument>
-              </arguments>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-      ...
-    </plugins>
-    ...
-  </build>
-  ...
-</project>
+```groovy
+task updateSubmodule {
+    doLast {
+        exec {
+            commandLine 'git', 'submodule', 'update', '--init', '--remote', '--force'
+        }
+    }
+}
+
+build {
+    dependsOn updateSubmodule
+}
 ```
 
 #### Executed Command
@@ -80,58 +48,23 @@ The resulting command that is executed is `git submodule update --init --remote 
 
 #### Excluding submodule updates during CI
 
-If you are using a CI/CD pipeline, you may want to exclude the submodule update during the CI/CD pipeline. This can be done by adding the following configuration to the `pom.xml`:
+If you are using a CI/CD pipeline, you may want to exclude the submodule update during the CI/CD pipeline. This can be done by adding the following configuration to the `build.gradle`:
 
-```xml
-<project>
-  ...
-  <properties>
-    ...
-    <exec-maven-plugin.version>3.3.0</exec-maven-plugin.version>
-    ...
-  </properties>
-  ...
-  <profiles>
-    <profile>
-      <id>local-development</id>
-      <activation>
-        <property>
-          <name>!env.SOME_ENV_VAR</name>
-        </property>
-      </activation>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.codehaus.mojo</groupId>
-            <artifactId>exec-maven-plugin</artifactId>
-            <version>${exec-maven-plugin.version}</version>
-            <inherited>false</inherited>
-            <executions>
-              <execution>
-                <id>git submodule update</id>
-                <goals>
-                  <goal>exec</goal>
-                </goals>
-                <phase>initialize</phase>
-                <configuration>
-                  <executable>git</executable>
-                  <arguments>
-                    <argument>submodule</argument>
-                    <argument>update</argument>
-                    <argument>--init</argument>
-                    <argument>--remote</argument>
-                    <argument>--force</argument>
-                  </arguments>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-  </profiles>
-  ...
-</project>
+```groovy
+task updateSubmodule {
+    doLast {
+        exec {
+            commandLine 'git', 'submodule', 'update', '--init', '--remote', '--force'
+        }
+    }
+    onlyIf {
+        System.env['SOME_ENV_VAR'] != null
+    }
+}
+
+build {
+    dependsOn updateSubmodule
+}
 ```
 
 This works by checking for the absence of an environment variable `SOME_ENV_VAR` and if it is not present, the submodule update will be executed. This can be used to exclude the submodule update during the CI/CD pipeline.
@@ -148,45 +81,20 @@ env:
 
 ### Install Git Hooks
 
-We then need to install the git hooks. This can be done by adding the following configuration to the `pom.xml`:
+We then need to install the git hooks. This can be done by adding the following configuration to the `build.gradle`:
 
-```xml
-<project>
-  ...
-  <properties>
-    ...
-    <git-build-hook-maven-plugin.version>3.5.0</git-build-hook-maven-plugin.version>
-    ...
-  </properties>
-  ...
-  <build>
-    ...
-    <plugins>
-      ...
-      <plugin>
-        <groupId>com.rudikershaw.gitbuildhook</groupId>
-        <artifactId>git-build-hook-maven-plugin</artifactId>
-        <version>${git-build-hook-maven-plugin.version}</version>
-        <configuration>
-          <installHooks>
-            <pre-commit>.hooks/pre-commit</pre-commit>
-            <post-commit>.hooks/post-commit</post-commit>
-          </installHooks>
-        </configuration>
-        <executions>
-          <execution>
-            <goals>
-              <goal>install</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-      ...
-    </plugins>
-    ...
-  </build>
-  ...
-</project>
+```groovy
+task installGitHooks(type: Copy) {
+    from new File(rootProject.rootDir, '.hooks/pre-commit')
+    into { new File(rootProject.rootDir, '.git/hooks') }
+
+    from new File(rootProject.rootDir, '.hooks/pre-commit')
+    into { new File(rootProject.rootDir, '.git/hooks') }
+}
+
+build {
+    dependsOn installGitHooks
+}
 ```
 
 ## Troubleshooting
