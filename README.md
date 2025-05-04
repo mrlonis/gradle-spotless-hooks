@@ -1,28 +1,38 @@
-# gradle-spotless-hooks
+# 🧼☕🪝 gradle-spotless-hooks
 
-## Table of Contents
+## 📑 Table of Contents
 
-- [gradle-spotless-hooks](#gradle-spotless-hooks)
-  - [Table of Contents](#table-of-contents)
-  - [Usage](#usage)
+- [🧼☕🪝 gradle-spotless-hooks](#-gradle-spotless-hooks)
+  - [📑 Table of Contents](#-table-of-contents)
+  - [🚀 Quickstart](#-quickstart)
     - [Automatically Update Submodule With Gradle](#automatically-update-submodule-with-gradle)
       - [Executed Command](#executed-command)
       - [Excluding submodule updates during CI](#excluding-submodule-updates-during-ci)
         - [GitHub Actions](#github-actions)
     - [Install Git Hooks](#install-git-hooks)
+  - [Setting up Spotless](#setting-up-spotless)
   - [Troubleshooting](#troubleshooting)
     - [How to fix "git-sh-setup: file not found" in windows](#how-to-fix-git-sh-setup-file-not-found-in-windows)
 
-## Usage
+## 🚀 Quickstart
 
-This repo should be added to another repo as a submodule
+This repository should be added to another repository as a [git submodule](https://git-scm.com/book/en/v2/Git-Tools-Submodules). Assuming you have `spotless` already set up in your project, you can add this repository as a submodule and manually install the hooks by running the following command in the root of your project:
 
 ```sh
 git submodule add -b main https://github.com/mrlonis/gradle-spotless-hooks.git .hooks/
+
+# Install the hooks
+# If on Mac or Linux
+./.hooks/install-hooks.sh
+# If on Windows
+.\.hooks\install-hooks.ps1
+
 git commit -m "Adding gradle-spotless-hooks"
 ```
 
-This will add the `gradle-spotless-hooks` repository as a submodule in the `.hooks` folder within your project.
+This will add the `gradle-spotless-hooks` repository as a `submodule` in the `.hooks` folder within `your project`, and install the `pre-commit` and `post-commit` hooks into the `.git/hooks/` directory. This will allow you to run the `spotless` formatter and `pre-commit` hooks automatically when you commit your code.
+
+If you do not have `spotless` set up in your project, you can follow the instructions in the [Setting up Spotless](#setting-up-spotless) section to set it up.
 
 ### Automatically Update Submodule With Gradle
 
@@ -96,6 +106,10 @@ build {
     dependsOn installGitHooks
 }
 ```
+
+## Setting up Spotless
+
+TBD
 
 ## Troubleshooting
 
