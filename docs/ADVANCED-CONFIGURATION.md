@@ -33,7 +33,7 @@ abstract class UpdateSubmoduleExecOperationsTask extends DefaultTask {
     @TaskAction
     void doTaskAction() {
         execOperations.exec {
-            commandLine 'ls', '-la'
+            commandLine 'git', 'submodule', 'update', '--init', '--remote', '--force'
         }
     }
 }
