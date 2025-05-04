@@ -1,18 +1,25 @@
 # 🧼☕🪝 gradle-spotless-hooks
 
+These hooks are Git-native and IDE-agnostic. You do not need to configure anything inside IntelliJ, Eclipse, or VS Code.
+
 ## 📑 Table of Contents
 
 - [🧼☕🪝 gradle-spotless-hooks](#-gradle-spotless-hooks)
   - [📑 Table of Contents](#-table-of-contents)
   - [🚀 Quickstart](#-quickstart)
-    - [Automatically Update Submodule With Gradle](#automatically-update-submodule-with-gradle)
-      - [Executed Command](#executed-command)
-      - [Excluding submodule updates during CI](#excluding-submodule-updates-during-ci)
-        - [GitHub Actions](#github-actions)
-    - [Install Git Hooks](#install-git-hooks)
-  - [Setting up Spotless](#setting-up-spotless)
-  - [Troubleshooting](#troubleshooting)
-    - [How to fix "git-sh-setup: file not found" in windows](#how-to-fix-git-sh-setup-file-not-found-in-windows)
+    - [🔧 Installing the Git Hooks](#-installing-the-git-hooks)
+      - [⚠️ Manual Hook Installation (Not Recommended)](#️-manual-hook-installation-not-recommended)
+      - [🤖 Automatic Maven Hook Installation](#-automatic-maven-hook-installation)
+  - [📚 Additional Documentation](#-additional-documentation)
+  - [🤝 Contributing](#-contributing)
+  - [🧩 What These Hooks Do](#-what-these-hooks-do)
+  - [🪝 Included Hooks](#-included-hooks)
+  - [🗺️ Flow Chart](#️-flow-chart)
+    - [🔀 Conflict Resolution](#-conflict-resolution)
+    - [🧭 Hook Behavior During Merge/Rebase](#-hook-behavior-during-mergerebase)
+  - [🧼 Setting up Spotless](#-setting-up-spotless)
+  - [🛠️ Advanced Configuration](#️-advanced-configuration)
+  - [🧯 Troubleshooting](#-troubleshooting)
 
 ## 🚀 Quickstart
 
@@ -32,66 +39,21 @@ git commit -m "Adding gradle-spotless-hooks"
 
 This will add the `gradle-spotless-hooks` repository as a `submodule` in the `.hooks` folder within `your project`, and install the `pre-commit` and `post-commit` hooks into the `.git/hooks/` directory. This will allow you to run the `spotless` formatter and `pre-commit` hooks automatically when you commit your code.
 
-If you do not have `spotless` set up in your project, you can follow the instructions in the [Setting up Spotless](#setting-up-spotless) section to set it up.
+If you do not have `spotless` set up in your project, you can follow the instructions in the [Setting up Spotless](#-setting-up-spotless) section to set it up.
 
-### Automatically Update Submodule With Gradle
+### 🔧 Installing the Git Hooks
 
-Submodules are not cloned by default so we need to add a plugin to our Gradle root `build.gradle` to clone the submodule. The following is the recommended configuration:
+Simply adding this `submodule` is not enough. We then need to install the scripts within this repository as proper `git hooks`.
 
-```groovy
-task updateSubmodule {
-    doLast {
-        exec {
-            commandLine 'git', 'submodule', 'update', '--init', '--remote', '--force'
-        }
-    }
-}
+#### ⚠️ Manual Hook Installation (Not Recommended)
 
-build {
-    dependsOn updateSubmodule
-}
-```
+You can manually install the hooks, as described in the [quickstart](#-quickstart) section, by running `./.hooks/install-hooks.sh` if on **Mac** or **Linux**, or `.\.hooks\install-hooks.ps1` if on **Windows**.
 
-#### Executed Command
+> **Note**: The above commands assume you are in the root of your project that has added this repository as a submodule, and that the submodule was added to the `.hooks` folder. If you are not, you will need to adjust the path to the `install-hooks.sh` or `install-hooks.ps1` script accordingly.
 
-The resulting command that is executed is `git submodule update --init --remote --force` which will clone the submodule if it does not exist, update the submodule to the latest commit, throw away local changes in submodules when switching to a different commit; and always run a checkout operation in the submodule, even if the commit listed in the index of the containing repository matches the commit checked out in the submodule.
+#### 🤖 Automatic Maven Hook Installation
 
-#### Excluding submodule updates during CI
-
-If you are using a CI/CD pipeline, you may want to exclude the submodule update during the CI/CD pipeline. This can be done by adding the following configuration to the `build.gradle`:
-
-```groovy
-task updateSubmodule {
-    doLast {
-        exec {
-            commandLine 'git', 'submodule', 'update', '--init', '--remote', '--force'
-        }
-    }
-    onlyIf {
-        System.env['SOME_ENV_VAR'] != null
-    }
-}
-
-build {
-    dependsOn updateSubmodule
-}
-```
-
-This works by checking for the absence of an environment variable `SOME_ENV_VAR` and if it is not present, the submodule update will be executed. This can be used to exclude the submodule update during the CI/CD pipeline.
-
-##### GitHub Actions
-
-If you are using GitHub Actions, you can exclude the submodule update by adding the following `env` configuration to the `.github/workflows/*.yml` file:
-
-```yaml
----
-env:
-  SOME_ENV_VAR: this_can_be_anything_since_we_are_checking_for_its_absence_not_its_value
-```
-
-### Install Git Hooks
-
-We then need to install the git hooks. This can be done by adding the following configuration to the `build.gradle`:
+It should go without saying why a manual only means of hook installation is bad. Ideally, we have the hook installation enforced automatically for us by some sort of shared mechanism. Luckily, if you are reading this, then you are using `Gradle`, which is easy to configure arbitrary tasks to run at various points in the build lifecycle. This can be done by adding the following configuration to the `build.gradle`:
 
 ```groovy
 task installGitHooks(type: Copy) {
@@ -107,20 +69,59 @@ build {
 }
 ```
 
-## Setting up Spotless
+## 📚 Additional Documentation
 
-TBD
+- [Spotless Configuration](./docs/SPOTLESS-CONFIG.md)
+- [Advanced Configuration](./docs/ADVANCED-CONFIGURATION.md)
+- [Troubleshooting Guide](./docs/TROUBLESHOOTING.md)
 
-## Troubleshooting
+## 🤝 Contributing
 
-### How to fix "git-sh-setup: file not found" in windows
+PRs welcome! Please open an issue first for discussion.
 
-[https://stackoverflow.com/questions/49256190/how-to-fix-git-sh-setup-file-not-found-in-windows](https://stackoverflow.com/questions/49256190/how-to-fix-git-sh-setup-file-not-found-in-windows)
+## 🧩 What These Hooks Do
 
-1. In the Windows Search bar, type `Environment Variables` and select `Edit the system environment variables`
-2. In the `System Properties` window, click on the `Environment Variables` button
-3. In the `Environment Variables` window, under `System variables`, click on `Path` and then click on `Edit`
-4. In the `Edit Environment Variable` window, click on `New` and add the following paths:
-   - `C:\Program Files\Git\usr\bin`
-   - `C:\Program Files\Git\mingw64\libexec\git-core`
-5. These will be added to the end of the list. Click on each one, and then click on `Move Up` until they are at the top of the list
+This repo provides Git `pre-commit` and `post-commit` hooks that automatically run `Spotless` on files you've changed. This ensures consistent formatting and reduces noisy diffs before commits ever hit GitHub for PR Review.
+
+## 🪝 Included Hooks
+
+- `pre-commit`: Applies `Spotless` to staged files before commit
+- `post-commit`: Re-runs `Spotless` after commit to handle missed diffs
+
+## 🗺️ Flow Chart
+
+```pqsql
+git commit
+   ↓
+pre-commit hook
+   ↓
+spotless:apply
+   ↓
+conflict resolution
+   ↓
+post-commit hook
+   ↓
+spotless:apply
+   ↓
+commit allowed or blocked (only blocked by `spotless` or pre-commit errors)
+```
+
+### 🔀 Conflict Resolution
+
+These hooks are designed to stash non-committed changes prior to commit, so that when `spotless` is run, it can apply the formatting to only the files being changed. After un-stashing, if there are conflicts, we will resolve them, re-run `spotless`, and re-commit the changes. This is done to ensure that the commit is always in a clean state, and that `spotless` has been applied before committing.
+
+### 🧭 Hook Behavior During Merge/Rebase
+
+These hooks are merge-aware and won’t interfere with merge commits or rebases. Conflicting files are automatically resolved in favor of 'theirs' and re-staged after formatting.
+
+## 🧼 Setting up Spotless
+
+For more information on how to set up `spotless`, please refer to [SPOTLESS-CONFIG.md](./docs/SPOTLESS-CONFIG.md).
+
+## 🛠️ Advanced Configuration
+
+For more advanced configuration information, such as how to automatically update the submodule with Maven, exclude submodule updates during CI, or a sample `README.md` change to make to your project, please refer to [ADVANCED-CONFIGURATION.md](./docs/ADVANCED-CONFIGURATION.md).
+
+## 🧯 Troubleshooting
+
+For troubleshooting, please refer to [TROUBLESHOOTING.md](./docs/TROUBLESHOOTING.md).
