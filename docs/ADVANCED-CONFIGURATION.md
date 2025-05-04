@@ -22,13 +22,24 @@ The following is the recommended configuration (**hold off on copying this! You 
 <details><summary>View the <code>build.gradle</code> configuration</summary>
 
 ```groovy
-task updateSubmodule {
-    doLast {
-        exec {
-            commandLine 'git', 'submodule', 'update', '--init', '--remote', '--force'
+abstract class UpdateSubmoduleExecOperationsTask extends DefaultTask {
+    private ExecOperations execOperations
+
+    @Inject //@javax.inject.Inject
+    UpdateSubmoduleExecOperationsTask(ExecOperations execOperations) {
+        this.execOperations = execOperations
+    }
+
+    @TaskAction
+    void doTaskAction() {
+        execOperations.exec {
+            commandLine 'ls', '-la'
         }
     }
 }
+
+
+tasks.register("updateSubmodule", UpdateSubmoduleExecOperationsTask)
 
 build {
     dependsOn updateSubmodule
