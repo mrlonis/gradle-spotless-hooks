@@ -56,12 +56,46 @@ You can manually install the hooks, as described in the [quickstart](#-quickstar
 It should go without saying why a manual only means of hook installation is bad. Ideally, we have the hook installation enforced automatically for us by some sort of shared mechanism. Luckily, if you are reading this, then you are using `Gradle`, which is easy to configure arbitrary tasks to run at various points in the build lifecycle. This can be done by adding the following configuration to the `build.gradle`:
 
 ```groovy
-task installGitHooks(type: Copy) {
-    from new File(rootProject.rootDir, '.hooks/pre-commit')
-    into { new File(rootProject.rootDir, '.git/hooks') }
+tasks.register('installLocalGitHook', Copy) {
+   from new File(rootProject.rootDir, '.hooks/pre-commit')
+   into { new File(rootProject.rootDir, '.git/hooks') }
+   filePermissions {
+      user {
+         read=true
+         write=true
+         execute=true
+      }
+      group {
+         read=true
+         write=true
+         execute=true
+      }
+      other {
+         read=true
+         write=false
+         execute=true
+      }
+   }
 
-    from new File(rootProject.rootDir, '.hooks/pre-commit')
-    into { new File(rootProject.rootDir, '.git/hooks') }
+   from new File(rootProject.rootDir, '.hooks/post-commit')
+   into { new File(rootProject.rootDir, '.git/hooks') }
+   filePermissions {
+      user {
+         read=true
+         write=true
+         execute=true
+      }
+      group {
+         read=true
+         write=true
+         execute=true
+      }
+      other {
+         read=true
+         write=false
+         execute=true
+      }
+   }
 }
 
 build {
